@@ -100,7 +100,7 @@ export async function callClaude(config, systemPrompt, userPrompt, repoRoot, onP
   let messages = [{ role: 'user', content: userPrompt }];
 
   for (let i = 0; i < 5; i++) {
-    onProgress?.(i === 0 ? 'Understanding the problem...' : `Finding the right files... (round ${i + 1})`);
+    onProgress?.(i === 0 ? 'Understanding the problem...' : i === 1 ? 'Still searching...' : 'Digging deeper...');
 
     let response;
     try {
