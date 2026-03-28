@@ -2,18 +2,24 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { configExists } from '../src/config.js';
 import { runWish } from '../src/wish.js';
 import { runDemo } from '../src/demo.js';
 import { formatHistory, formatStats } from '../src/history.js';
 import { loadConfig, saveConfig, runSetup } from '../src/config.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+
 const program = new Command();
 
 program
   .name('adamant')
   .description('English to Pull Request in 60 seconds. The PM\'s code tool.')
-  .version('0.1.0');
+  .version(pkg.version);
 
 // Wish command
 program
@@ -72,7 +78,8 @@ program
     }
     const config = loadConfig();
     console.log('\n  Adamant Config:');
-    console.log(`  API Key: ${config.anthropic_api_key?.slice(0, 8)}...`);
+    const key = config.anthropic_api_key || '';
+  console.log(`  API Key: ${key.slice(0, 7)}...${key.slice(-4)}`);
     console.log(`  GitHub:  ${config.github_token ? 'configured' : 'not set'}`);
     console.log(`  Model:   ${config.default_model || 'claude-sonnet-4-6'}`);
     console.log(`  Preview: ${config.preview_preference === null ? 'ask on first wish' : config.preview_preference}`);

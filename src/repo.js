@@ -22,8 +22,16 @@ export function extractKeywords(wish) {
 }
 
 export function readRepo(wish, repoRoot) {
-  const rawFiles = execSync('git ls-files', { cwd: repoRoot, encoding: 'utf-8' });
+  let rawFiles;
+  try {
+    rawFiles = execSync('git ls-files', { cwd: repoRoot, encoding: 'utf-8' });
+  } catch {
+    rawFiles = '';
+  }
   const files = rawFiles.trim().split('\n').filter(Boolean);
+  if (files.length === 0) {
+    throw new Error('This repo has no tracked files. Make at least one commit first.');
+  }
   const fileTree = files.join('\n');
 
   const keywords = extractKeywords(wish);

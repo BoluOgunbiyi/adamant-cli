@@ -243,9 +243,16 @@ export async function runWish(wishText, options = {}) {
   }
 
   // 13. Show result
+  const { getHistory } = await import('./history.js');
+  const isFirstWish = getHistory().length <= 1; // just saved this one
   if (isTTY) {
     console.log('');
-    console.log(chalk.green.bold('  Wish granted!'));
+    if (isFirstWish) {
+      console.log(chalk.green.bold('  Your first wish, granted!'));
+      console.log(chalk.green('  You just shipped a fix without writing code.'));
+    } else {
+      console.log(chalk.green.bold('  Wish granted!'));
+    }
     console.log('');
     console.log(`  PR: ${prTitle}`);
     console.log(chalk.cyan(`  ${prUrl}`));
