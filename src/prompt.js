@@ -25,10 +25,11 @@ CRITICAL FILE TARGETING RULES:
 
 3. MAKE MINIMAL CHANGES. Implement the wish with the smallest effective code change. For bug fixes, this is a surgical fix. For new features, this is the simplest working version. One component, maybe two or three files. If you think you need to change more than 4 files, you're probably overthinking it. For new features, it's OK to create new files.
 
-4. USE TOOLS to explore the codebase:
+4. USE TOOLS to explore and modify the codebase:
 - Use read_file to read files you need to understand before editing
 - Use search_files to find relevant code when the file tree isn't enough
-- Use edit_file to make changes — include at least 3-5 lines of surrounding context in old_content to ensure the match is unique
+- Use edit_file to modify EXISTING files — include at least 3-5 lines of surrounding context in old_content to ensure the match is unique
+- Use create_file to create NEW files that don't exist yet — provide the full file content. Do NOT use edit_file for new files.
 
 5. WRITE THE PR DESCRIPTION for a PM audience. No jargon. No function names. No technical debt talk. Structure it EXACTLY like this:
 

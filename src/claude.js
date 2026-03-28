@@ -7,7 +7,7 @@ import { AuthError, RateLimitError, TimeoutError, EmptyResponseError, RefusalErr
 const TOOLS = [
   {
     name: 'edit_file',
-    description: 'Edit a file by replacing old_content with new_content. Include at least 3-5 lines of surrounding context in old_content to ensure a unique match.',
+    description: 'Edit an existing file by replacing old_content with new_content. Include at least 3-5 lines of surrounding context in old_content to ensure a unique match. Only works on files that already exist.',
     input_schema: {
       type: 'object',
       properties: {
@@ -16,6 +16,18 @@ const TOOLS = [
         new_content: { type: 'string', description: 'Text to replace it with' },
       },
       required: ['path', 'old_content', 'new_content'],
+    },
+  },
+  {
+    name: 'create_file',
+    description: 'Create a new file with the given content. Use this for new files that do not exist yet. Do NOT use edit_file for new files.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: 'File path relative to repo root (directories will be created automatically)' },
+        content: { type: 'string', description: 'Full content of the new file' },
+      },
+      required: ['path', 'content'],
     },
   },
   {
@@ -84,8 +96,11 @@ function handleToolCall(toolName, input, repoRoot) {
   }
 
   if (toolName === 'edit_file') {
-    // edit_file is collected, not executed during the API call
     return 'Edit recorded. Will be applied after all edits are collected.';
+  }
+
+  if (toolName === 'create_file') {
+    return 'File creation recorded. Will be created after all changes are collected.';
   }
 
   return 'Unknown tool.';
@@ -134,9 +149,18 @@ export async function callClaude(config, systemPrompt, userPrompt, repoRoot, onP
         if (block.name === 'edit_file') {
           onProgress?.('Writing the fix...');
           edits.push({
+            type: 'edit',
             path: block.input.path,
             old_content: block.input.old_content,
             new_content: block.input.new_content,
+          });
+        }
+        if (block.name === 'create_file') {
+          onProgress?.('Creating new file...');
+          edits.push({
+            type: 'create',
+            path: block.input.path,
+            content: block.input.content,
           });
         }
       }
@@ -145,7 +169,7 @@ export async function callClaude(config, systemPrompt, userPrompt, repoRoot, onP
     // If no tool calls, we're done
     // On end_turn, only break if there are no non-edit tool calls still needing results
     // (edit_file edits are already collected above — they don't need a follow-up round)
-    const pendingNonEditTools = toolUses.filter(tu => tu.name !== 'edit_file');
+    const pendingNonEditTools = toolUses.filter(tu => tu.name !== 'edit_file' && tu.name !== 'create_file');
     if (toolUses.length === 0 || (response.stop_reason === 'end_turn' && pendingNonEditTools.length === 0)) {
       break;
     }
