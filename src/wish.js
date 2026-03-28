@@ -6,7 +6,7 @@ import { buildSystemPrompt, buildUserPrompt } from './prompt.js';
 import { readRepo, loadContext, saveContext } from './repo.js';
 import { callClaude } from './claude.js';
 import { applyEdits, formatDiff } from './edit.js';
-import { checkGitState, getRepoRoot, getRemoteUrl, createBranch, commitAndPush, cleanup } from './git.js';
+import { checkGitState, getRepoRoot, getRemoteUrl, checkRemote, createBranch, commitAndPush, cleanup, popStash } from './git.js';
 import { createPR, getDefaultBranch } from './github.js';
 import { saveWish } from './history.js';
 import { ConfigNotFound } from './errors.js';
@@ -34,14 +34,19 @@ export async function runWish(wishText, options = {}) {
 
   if (options.model) config.default_model = options.model;
 
-  // 2. Check git state
+  // 2. Check git state (auto-stashes dirty tracked files)
   const repoRoot = await getRepoRoot();
-  const { branch: originalBranch } = await checkGitState(repoRoot);
+
+  // Check remote exists before doing any work
+  await checkRemote(repoRoot);
+
+  const { branch: originalBranch, wasStashed } = await checkGitState(repoRoot, true);
 
   if (isTTY) {
     console.log('');
     console.log(chalk.dim(`  Repo: ${repoRoot.split('/').pop()}`));
     console.log(chalk.dim(`  Branch: ${originalBranch}`));
+    if (wasStashed) console.log(chalk.dim('  Auto-stashed your uncommitted changes (will restore after).'));
     console.log(chalk.dim(`  Wish: "${wishText}"`));
     console.log('');
   }
@@ -72,8 +77,19 @@ export async function runWish(wishText, options = {}) {
   const { edits, prDescription } = await callClaude(config, systemPrompt, userPrompt, repoRoot, onProgress);
 
   if (edits.length === 0) {
-    spinner?.fail("Adamant analyzed your repo but couldn't find code related to this wish.");
-    console.log(chalk.dim('  Try being more specific about which feature or screen.'));
+    spinner?.fail("Adamant analyzed your repo but couldn't find code to change.");
+    if (isTTY) {
+      console.log('');
+      console.log(chalk.dim('  Tips to get better results:'));
+      console.log(chalk.dim('  - Name the specific page or screen: "on the settings page, ..."'));
+      console.log(chalk.dim('  - Describe what the user sees: "users see a blank screen when ..."'));
+      console.log(chalk.dim('  - For new features, say what to add: "add a toast notification that ..."'));
+      console.log('');
+      console.log(chalk.dim(`  Your wish was: "${wishText}"`));
+      console.log(chalk.dim('  Try something like:'));
+      console.log(chalk.cyan(`    adamant wish "on the ${wishText.split(' ').slice(-2).join(' ')} page, add a visible indicator so users know it worked"`));
+    }
+    if (wasStashed) await popStash(repoRoot);
     return;
   }
 
@@ -85,6 +101,7 @@ export async function runWish(wishText, options = {}) {
   if (applied.length === 0) {
     console.log(chalk.red("  Couldn't apply any changes. The code may have changed since Adamant read it."));
     for (const f of failed) console.log(chalk.dim(`  ${f.error.userMessage}`));
+    if (wasStashed) await popStash(repoRoot);
     return;
   }
 
@@ -207,7 +224,14 @@ export async function runWish(wishText, options = {}) {
   // 11. Save context
   try { saveContext(repoRoot, wishText, applied); } catch { /* non-blocking */ }
 
-  // 12. Show result
+  // 12. Restore stashed changes
+  if (wasStashed) {
+    await cleanup(repoRoot, originalBranch, wishBranch);
+    await popStash(repoRoot);
+    if (isTTY) console.log(chalk.dim('  Restored your uncommitted changes.'));
+  }
+
+  // 13. Show result
   if (isTTY) {
     console.log('');
     console.log(chalk.green.bold('  Wish granted!'));
