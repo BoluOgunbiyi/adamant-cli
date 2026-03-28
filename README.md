@@ -197,12 +197,23 @@ Adamant will auto-stash them before running and restore them after. You'll see a
 
 What's coming next for Adamant:
 
+### V1.1 — Coming soon
+
+| Feature | Description |
+|---------|-------------|
+| PR description front and center in `--preview` | When you run `adamant wish --preview`, the PR description now appears before the code diff — so you see the plain-English summary of what changed first, then the technical details |
+| Remember failed wishes | When a wish can't be applied, Adamant saves it and uses it to improve future results — so the more you use it, the better it gets at understanding your codebase |
+| `--file <path>` flag | Tell Adamant exactly which file or component to focus on — useful when you know where the problem lives and want a faster, more targeted fix |
+| `--local` mode | Apply changes to your working directory without creating a branch or opening a PR — for when you want to review the code yourself before pushing anything to GitHub |
+| `adamant undo` | Made a wish you regret? `adamant undo` closes the last PR and reverts the branch — one command to roll back your last change |
+
+### Later
+
 | Feature | Description |
 |---------|-------------|
 | **Extension Integration** *(V3)* | The Adamant Chrome extension watches what users actually experience — capturing screenshots, rage clicks, and friction signals in real time. The CLI fixes code. V3 connects them: a PM spots a problem in the browser, clicks "wish", and Adamant automatically triggers the CLI to generate and open a PR. No copy-paste, no ticket — the wish flows directly from what the user sees in the browser to a code fix on GitHub. |
 | `adamant fix <PR-URL>` | Point Adamant at a stale or stuck PR and let it diagnose what's blocking it — conflicts, failing checks, outdated reviews — and push a fix |
 | `adamant scan` | Run Adamant against your whole repo to surface UX friction before users report it — slow pages, broken flows, confusing errors |
-| Self-improving prompt agent | Adamant learns from every wish it fulfills, getting better at understanding your codebase and your team's patterns over time |
 | Linear + Slack integration | Pipe wishes in directly from a Linear ticket or Slack message — no copy-paste required |
 | JSON output mode | Get structured output from any command (`--json`) for scripting, dashboards, or piping into other tools |
 
