@@ -3,21 +3,21 @@
 export class ConfigNotFound extends Error {
   constructor() {
     super('Config not found');
-    this.userMessage = "No config found. Let's get you set up!";
+    this.userMessage = "No config found. Run `adamant config` to get set up — it takes about 30 seconds.";
   }
 }
 
 export class ConfigParseError extends Error {
   constructor() {
     super('Config file is corrupted');
-    this.userMessage = 'Config file is corrupted. Run `adamant config --reset` to fix it.';
+    this.userMessage = 'Your config file is corrupted and can\'t be read. Run `adamant config --reset` to wipe it and start fresh.';
   }
 }
 
 export class InvalidConfigError extends Error {
   constructor(field) {
     super(`Invalid config: ${field}`);
-    this.userMessage = `Invalid ${field}. Run \`adamant config\` to check your settings.`;
+    this.userMessage = `Your ${field} looks invalid. Run \`adamant config\` to check and update your settings.`;
   }
 }
 
@@ -31,35 +31,35 @@ export class AuthError extends Error {
 export class RateLimitError extends Error {
   constructor() {
     super('Rate limited');
-    this.userMessage = 'Rate limited by Claude API. Waiting 30 seconds...';
+    this.userMessage = "You've hit the Claude API rate limit. Wait a minute and try again, or check your plan limits at console.anthropic.com.";
   }
 }
 
 export class TimeoutError extends Error {
   constructor() {
     super('Request timed out');
-    this.userMessage = 'Request timed out. Retrying with less context...';
+    this.userMessage = "The request to Claude timed out — your repo may be too large to process in one shot. Try running from a subdirectory, or break your wish into a smaller, more specific ask.";
   }
 }
 
 export class EmptyResponseError extends Error {
   constructor() {
     super('Empty response');
-    this.userMessage = "Adamant couldn't figure out the right fix. Try rephrasing your wish with more detail about which part of the app is affected.";
+    this.userMessage = "Adamant couldn't figure out the right fix. Try rephrasing your wish with more detail — for example, mention the specific screen, feature, or file that needs changing.";
   }
 }
 
 export class MalformedEditError extends Error {
   constructor(detail) {
     super(`Malformed edit: ${detail}`);
-    this.userMessage = "Adamant got confused generating the fix. Here's what it tried:";
+    this.userMessage = `Adamant generated a change it couldn't apply (${detail}). Try rephrasing your wish, or use --preview to inspect what it produces.`;
   }
 }
 
 export class RefusalError extends Error {
   constructor(reason) {
     super(`Refused: ${reason}`);
-    this.userMessage = `Claude declined this wish: ${reason}`;
+    this.userMessage = `Claude declined to process this wish. Try rephrasing it — if your wish touches auth, secrets, or security-sensitive code, try being more specific about the UX problem instead.\n  Details: ${reason}`;
   }
 }
 
