@@ -82,7 +82,27 @@ program.action(async () => {
   if (!configExists()) {
     await runDemo();
   } else {
-    program.help();
+    const config = loadConfig();
+    console.log('');
+    console.log(chalk.bold('  Hey, welcome back to Adamant! 👋'));
+    console.log(chalk.dim('  English to Pull Request in 60 seconds.'));
+    console.log('');
+    console.log('  What would you like to fix today?');
+    console.log('');
+    console.log(chalk.cyan('    adamant wish "describe the problem in plain English"'));
+    console.log('');
+    console.log('  ' + chalk.dim('Examples:'));
+    console.log(chalk.dim('    adamant wish "users keep abandoning checkout at step 3"'));
+    console.log(chalk.dim('    adamant wish "the error messages are confusing and unhelpful"'));
+    console.log(chalk.dim('    adamant wish "the settings page is broken on mobile"'));
+    console.log('');
+    console.log('  ' + chalk.dim('Other commands:'));
+    console.log(chalk.dim('    adamant log           — see your wish history'));
+    console.log(chalk.dim('    adamant log --stats   — view your impact stats'));
+    console.log(chalk.dim('    adamant config        — view your current settings'));
+    console.log('');
+    console.log('  ' + chalk.dim(`Model: ${config.default_model || 'claude-sonnet-4-6'} · ~$0.20/wish`));
+    console.log('');
   }
 });
 
