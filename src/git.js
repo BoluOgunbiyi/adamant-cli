@@ -77,12 +77,13 @@ export async function getRemoteUrl(repoRoot) {
 }
 
 function slugify(text) {
-  return text
+  const slug = text
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
     .slice(0, 40);
+  return slug || 'wish';
 }
 
 export async function createBranch(repoRoot, wish) {
