@@ -17,14 +17,16 @@ program
 
 // Wish command
 program
-  .command('wish <text>')
-  .description('Make a wish — describe what to fix in plain English')
-  .option('--preview', 'Show diff before creating PR')
-  .option('--dry-run', 'Show changes without creating branch or PR')
-  .option('--yes', 'Skip confirmation prompts')
+  .command('wish')
+  .argument('<text...>', 'Describe what you want changed in plain English')
+  .description('Make a wish — describe what you want changed in plain English')
+  .option('--preview', 'See the diff before creating the PR')
+  .option('--dry-run', 'Show what would change without creating anything')
+  .option('--yes, -y', 'Skip confirmation prompts')
   .option('--model <model>', 'Claude model to use')
-  .option('--no-draft', 'Create PR as ready (not draft)')
-  .action(async (text, options) => {
+  .option('--ready', 'Create PR as ready for review (default: draft)')
+  .action(async (textParts, options) => {
+    const text = textParts.join(' ');
     try {
       await runWish(text, options);
     } catch (err) {

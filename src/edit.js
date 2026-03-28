@@ -36,7 +36,8 @@ export function applyEdits(edits, repoRoot) {
   return { applied, failed };
 }
 
-export function formatDiff(edits, isTTY) {
+export async function formatDiff(edits, isTTY) {
+  const chalk = (await import('chalk')).default;
   let output = '';
   for (const edit of edits) {
     output += `\n  ${edit.path}\n`;
@@ -44,14 +45,10 @@ export function formatDiff(edits, isTTY) {
     const newLines = edit.new_content.split('\n');
 
     for (const line of oldLines) {
-      const prefix = isTTY ? '\x1b[31m- ' : '- ';
-      const suffix = isTTY ? '\x1b[0m' : '';
-      output += `  ${prefix}${line}${suffix}\n`;
+      output += isTTY ? `  ${chalk.red('- ' + line)}\n` : `  - ${line}\n`;
     }
     for (const line of newLines) {
-      const prefix = isTTY ? '\x1b[32m+ ' : '+ ';
-      const suffix = isTTY ? '\x1b[0m' : '';
-      output += `  ${prefix}${line}${suffix}\n`;
+      output += isTTY ? `  ${chalk.green('+ ' + line)}\n` : `  + ${line}\n`;
     }
   }
   return output;

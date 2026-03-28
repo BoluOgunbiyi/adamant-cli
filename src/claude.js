@@ -56,10 +56,16 @@ function handleToolCall(toolName, input, repoRoot) {
 
   if (toolName === 'search_files') {
     try {
+      // Use writeFileSync to pass query safely — no shell injection
+      const { writeFileSync, unlinkSync } = await import('fs');
+      const { join } = await import('path');
+      const tmpPattern = join(repoRoot, '.adamant-search-tmp');
+      writeFileSync(tmpPattern, input.query);
       const result = execSync(
-        `grep -rn --include='*' -l "${input.query.replace(/"/g, '\\"')}" . | head -10`,
+        `grep -rn --include='*' -l -F -f .adamant-search-tmp . | head -10`,
         { cwd: repoRoot, encoding: 'utf-8', timeout: 5000 }
       );
+      unlinkSync(tmpPattern);
       if (!result.trim()) return 'No matches found.';
 
       const files = result.trim().split('\n').slice(0, 10);
@@ -67,7 +73,7 @@ function handleToolCall(toolName, input, repoRoot) {
       for (const file of files) {
         try {
           const grepResult = execSync(
-            `grep -n -C 3 "${input.query.replace(/"/g, '\\"')}" "${file}"`,
+            `grep -n -F -C 3 -f .adamant-search-tmp "${file}"`,
             { cwd: repoRoot, encoding: 'utf-8', timeout: 5000 }
           );
           output += `\n### ${file}\n${grepResult}\n`;

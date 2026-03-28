@@ -55,11 +55,18 @@ export async function runWish(wishText, options = {}) {
   const context = loadContext(repoRoot);
   const { fileTree, fileContents, tokenEstimate, fileCount } = readRepo(wishText, repoRoot);
 
-  // 4. Cost estimate
-  const estimatedCost = (tokenEstimate / 1_000_000) * 3 + 0.045; // input + ~3K output
+  // 4. Cost estimate (per-model pricing)
+  const MODEL_PRICING = {
+    'claude-sonnet-4-6': { input: 3, output: 15 },
+    'claude-opus-4-6': { input: 15, output: 75 },
+    'claude-haiku-4-5-20251001': { input: 0.8, output: 4 },
+  };
+  const model = config.default_model || 'claude-sonnet-4-6';
+  const pricing = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-6'];
+  const estimatedCost = (tokenEstimate / 1_000_000) * pricing.input + (3000 / 1_000_000) * pricing.output;
   if (!options.yes && isTTY) {
     const costStr = `$${estimatedCost.toFixed(2)}`;
-    const answer = await ask(`  This wish will use ~${tokenEstimate.toLocaleString()} tokens (~${costStr}). Proceed? [Y/n] `);
+    const answer = await ask(`  This wish will cost ~${chalk.bold(costStr)}. Proceed? [Y/n] `);
     if (answer.toLowerCase() === 'n') {
       console.log(chalk.dim('  Cancelled.'));
       return;
@@ -117,73 +124,68 @@ export async function runWish(wishText, options = {}) {
     if (isTTY) {
       console.log('');
       console.log(chalk.bold('  Changes:'));
-      console.log(formatDiff(applied, isTTY));
+      console.log(await formatDiff(applied, isTTY));
       console.log('');
       console.log(chalk.bold('  PR Description:'));
       console.log('  ' + prDescription.split('\n').join('\n  '));
     } else {
-      console.log(formatDiff(applied, false));
+      console.log(await formatDiff(applied, false));
       console.log(prDescription);
     }
     console.log(isTTY ? chalk.dim('  --dry-run: No branch or PR created.') : '--dry-run: No branch or PR created.');
-    // Revert applied edits
+    // Revert using git checkout (safe, handles all edge cases)
+    const { execSync } = await import('child_process');
     for (const edit of applied) {
-      const { readFileSync, writeFileSync } = await import('fs');
-      const { join } = await import('path');
-      const fullPath = join(repoRoot, edit.path);
-      let content = readFileSync(fullPath, 'utf-8');
-      content = content.replace(edit.new_content, edit.old_content);
-      writeFileSync(fullPath, content);
+      execSync(`git checkout -- "${edit.path}"`, { cwd: repoRoot });
     }
+    if (wasStashed) await popStash(repoRoot);
     return;
   }
 
   if (showPreview && isTTY) {
     console.log('');
     console.log(chalk.bold('  Changes:'));
-    console.log(formatDiff(applied, isTTY));
+    console.log(await formatDiff(applied, isTTY));
     console.log('');
     console.log(chalk.bold('  PR Description:'));
     console.log('  ' + prDescription.split('\n').join('\n  '));
     console.log('');
 
     if (config.preview_preference === null) {
-      const answer = await ask('  [s]ubmit / [e]dit wish / [c]ancel: ');
-      const choice = answer.trim().toLowerCase();
+      let choice = '';
+      while (!['s', 'e', 'c'].includes(choice)) {
+        const answer = await ask('  [s]ubmit / [e]dit wish / [c]ancel: ');
+        choice = answer.trim().toLowerCase().charAt(0) || '';
+        if (!['s', 'e', 'c'].includes(choice)) {
+          console.log(chalk.dim("  Type 's' to submit, 'e' to edit, or 'c' to cancel."));
+        }
+      }
 
       if (choice === 'c') {
-        // Revert edits
+        const { execSync } = await import('child_process');
         for (const edit of applied) {
-          const { readFileSync, writeFileSync } = await import('fs');
-          const { join } = await import('path');
-          const fullPath = join(repoRoot, edit.path);
-          let content = readFileSync(fullPath, 'utf-8');
-          content = content.replace(edit.new_content, edit.old_content);
-          writeFileSync(fullPath, content);
+          execSync(`git checkout -- "${edit.path}"`, { cwd: repoRoot });
         }
         console.log(chalk.dim('  Cancelled. No changes made.'));
+        if (wasStashed) await popStash(repoRoot);
         return;
       }
 
       if (choice === 'e') {
-        // Revert and re-run with new wish
+        const { execSync } = await import('child_process');
         for (const edit of applied) {
-          const { readFileSync, writeFileSync } = await import('fs');
-          const { join } = await import('path');
-          const fullPath = join(repoRoot, edit.path);
-          let content = readFileSync(fullPath, 'utf-8');
-          content = content.replace(edit.new_content, edit.old_content);
-          writeFileSync(fullPath, content);
+          execSync(`git checkout -- "${edit.path}"`, { cwd: repoRoot });
         }
         const newWish = await ask('  New wish: ');
         if (newWish.trim()) {
           return runWish(newWish.trim(), { ...options, preview: true });
         }
         console.log(chalk.dim('  Cancelled.'));
+        if (wasStashed) await popStash(repoRoot);
         return;
       }
 
-      // Save preference (skip preview next time)
+      // 's' = submit — save preference (skip preview next time)
       const { saveConfig } = await import('./config.js');
       config.preview_preference = 'skip';
       saveConfig(config);
@@ -196,7 +198,7 @@ export async function runWish(wishText, options = {}) {
 
   const commitMsg = `fix: ${wishText}\n\nGenerated by Adamant CLI`;
   try {
-    await commitAndPush(repoRoot, commitMsg);
+    await commitAndPush(repoRoot, commitMsg, applied.map(e => e.path));
   } catch (err) {
     await cleanup(repoRoot, originalBranch, wishBranch);
     throw err;
@@ -207,14 +209,21 @@ export async function runWish(wishText, options = {}) {
   const defaultBranch = await getDefaultBranch(config, remoteUrl);
 
   const prTitle = `Fix: ${wishText.charAt(0).toUpperCase() + wishText.slice(1)}`;
-  const { url: prUrl, number: prNumber } = await createPR(config, {
-    title: prTitle,
-    body: prDescription,
-    branch: wishBranch,
-    base: defaultBranch,
-    draft: !options.noDraft,
-    remoteUrl,
-  });
+  let prUrl, prNumber;
+  try {
+    ({ url: prUrl, number: prNumber } = await createPR(config, {
+      title: prTitle,
+      body: prDescription,
+      branch: wishBranch,
+      base: defaultBranch,
+      draft: !options.ready,
+      remoteUrl,
+    }));
+  } catch (err) {
+    await cleanup(repoRoot, originalBranch, wishBranch);
+    if (wasStashed) await popStash(repoRoot);
+    throw err;
+  }
 
   // 10. Save history
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);

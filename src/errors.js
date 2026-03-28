@@ -31,14 +31,14 @@ export class AuthError extends Error {
 export class RateLimitError extends Error {
   constructor() {
     super('Rate limited');
-    this.userMessage = 'Rate limited by Claude API. Waiting 30 seconds...';
+    this.userMessage = 'Rate limited by Claude API. Wait a minute and try again.';
   }
 }
 
 export class TimeoutError extends Error {
   constructor() {
     super('Request timed out');
-    this.userMessage = 'Request timed out. Retrying with less context...';
+    this.userMessage = 'Request timed out. Try a shorter wish or a smaller repo.';
   }
 }
 
@@ -73,7 +73,7 @@ export class NotGitRepoError extends Error {
 export class DirtyTreeError extends Error {
   constructor() {
     super('Dirty working tree');
-    this.userMessage = 'You have uncommitted changes. Commit or stash them first so Adamant can create a clean branch.';
+    this.userMessage = "Adamant tried to save your in-progress work but couldn't. Ask your engineer to commit or stash, then try again.";
   }
 }
 
