@@ -2,11 +2,11 @@ import { Octokit } from '@octokit/rest';
 import { GitHubAuthError, RepoNotFoundError } from './errors.js';
 
 function parseRemoteUrl(url) {
-  // Handle SSH: git@github.com:owner/repo.git
-  let match = url.match(/github\.com[:/](.+?)\/(.+?)(?:\.git)?$/);
+  // Handle SSH: git@github.example.com:owner/repo.git (any hostname containing "github")
+  let match = url.match(/[a-z0-9.-]*github[a-z0-9.-]*[:/](.+?)\/(.+?)(?:\.git)?$/);
   if (match) return { owner: match[1], repo: match[2] };
-  // Handle HTTPS: https://github.com/owner/repo.git
-  match = url.match(/github\.com\/(.+?)\/(.+?)(?:\.git)?$/);
+  // Handle HTTPS: https://github.example.com/owner/repo.git (any hostname containing "github")
+  match = url.match(/[a-z0-9.-]*github[a-z0-9.-]*\/(.+?)\/(.+?)(?:\.git)?$/);
   if (match) return { owner: match[1], repo: match[2] };
   return null;
 }
