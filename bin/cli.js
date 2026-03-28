@@ -1,0 +1,89 @@
+#!/usr/bin/env node
+
+import { Command } from 'commander';
+import chalk from 'chalk';
+import { configExists } from '../src/config.js';
+import { runWish } from '../src/wish.js';
+import { runDemo } from '../src/demo.js';
+import { formatHistory, formatStats } from '../src/history.js';
+import { loadConfig, saveConfig, runSetup } from '../src/config.js';
+
+const program = new Command();
+
+program
+  .name('adamant')
+  .description('English to Pull Request in 60 seconds. The PM\'s code tool.')
+  .version('0.1.0');
+
+// Wish command
+program
+  .command('wish <text>')
+  .description('Make a wish — describe what to fix in plain English')
+  .option('--preview', 'Show diff before creating PR')
+  .option('--dry-run', 'Show changes without creating branch or PR')
+  .option('--yes', 'Skip confirmation prompts')
+  .option('--model <model>', 'Claude model to use')
+  .option('--no-draft', 'Create PR as ready (not draft)')
+  .action(async (text, options) => {
+    try {
+      await runWish(text, options);
+    } catch (err) {
+      if (err.userMessage) {
+        console.error('\n  ' + chalk.red(err.userMessage));
+        if (process.env.DEBUG) console.error(err);
+      } else {
+        console.error('\n  ' + chalk.red('Something went wrong.'));
+        console.error('  ' + chalk.dim(err.message));
+        if (process.env.DEBUG) console.error(err);
+      }
+      process.exit(1);
+    }
+  });
+
+// Log command
+program
+  .command('log')
+  .description('View your wish history')
+  .option('--stats', 'Show aggregated stats')
+  .action((options) => {
+    const isTTY = process.stdout.isTTY;
+    if (options.stats) {
+      console.log(formatStats(isTTY));
+    } else {
+      console.log(formatHistory(isTTY));
+    }
+  });
+
+// Config command
+program
+  .command('config')
+  .description('View or update your Adamant config')
+  .option('--reset', 'Reset config and run setup again')
+  .action(async (options) => {
+    if (options.reset) {
+      await runSetup();
+      return;
+    }
+    if (!configExists()) {
+      console.log(chalk.dim('\n  No config found. Run `adamant config --reset` to set up.\n'));
+      return;
+    }
+    const config = loadConfig();
+    console.log('\n  Adamant Config:');
+    console.log(`  API Key: ${config.anthropic_api_key?.slice(0, 8)}...`);
+    console.log(`  GitHub:  ${config.github_token ? 'configured' : 'not set'}`);
+    console.log(`  Model:   ${config.default_model || 'claude-sonnet-4-6'}`);
+    console.log(`  Preview: ${config.preview_preference === null ? 'ask on first wish' : config.preview_preference}`);
+    console.log('');
+  });
+
+// Default: show help or demo
+program.action(async () => {
+  if (!configExists()) {
+    await runDemo();
+  } else {
+    program.help();
+  }
+});
+
+program.parse();
