@@ -9,6 +9,10 @@ export function applyEdits(edits, repoRoot) {
   for (const edit of edits) {
     const fullPath = join(repoRoot, edit.path);
     try {
+      if (!edit.old_content || edit.old_content.trim() === '') {
+        failed.push({ path: edit.path, error: new EditMatchError(edit.path, '(empty old_content — would match entire file)') });
+        continue;
+      }
       let content = readFileSync(fullPath, 'utf-8');
       const occurrences = content.split(edit.old_content).length - 1;
 
