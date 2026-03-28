@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 import { AuthError, RateLimitError, TimeoutError, EmptyResponseError, RefusalError } from './errors.js';
@@ -57,8 +57,6 @@ function handleToolCall(toolName, input, repoRoot) {
   if (toolName === 'search_files') {
     try {
       // Use writeFileSync to pass query safely — no shell injection
-      const { writeFileSync, unlinkSync } = await import('fs');
-      const { join } = await import('path');
       const tmpPattern = join(repoRoot, '.adamant-search-tmp');
       writeFileSync(tmpPattern, input.query);
       const result = execSync(
