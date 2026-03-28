@@ -122,3 +122,10 @@ export class AmbiguousEditError extends Error {
     this.userMessage = `Found ${count} matching locations in ${path}. Skipping this edit to be safe.`;
   }
 }
+
+export class NoRemoteError extends Error {
+  constructor() {
+    super('No remote origin');
+    this.userMessage = "This repo isn't connected to GitHub yet. Run `git remote add origin https://github.com/YOU/REPO.git` first, then try again.";
+  }
+}
