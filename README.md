@@ -199,6 +199,7 @@ What's coming next for Adamant:
 
 | Feature | Description |
 |---------|-------------|
+| **Extension Integration** *(V3)* | The Adamant Chrome extension watches what users actually experience — capturing screenshots, rage clicks, and friction signals in real time. The CLI fixes code. V3 connects them: a PM spots a problem in the browser, clicks "wish", and Adamant automatically triggers the CLI to generate and open a PR. No copy-paste, no ticket — the wish flows directly from what the user sees in the browser to a code fix on GitHub. |
 | `adamant fix <PR-URL>` | Point Adamant at a stale or stuck PR and let it diagnose what's blocking it — conflicts, failing checks, outdated reviews — and push a fix |
 | `adamant scan` | Run Adamant against your whole repo to surface UX friction before users report it — slow pages, broken flows, confusing errors |
 | Self-improving prompt agent | Adamant learns from every wish it fulfills, getting better at understanding your codebase and your team's patterns over time |
