@@ -193,6 +193,22 @@ Not via a config flag yet, but you can pass `--model` on any wish. Run `adamant 
 **What if I have uncommitted changes?**
 Adamant will auto-stash them before running and restore them after. You'll see a note in the output when this happens.
 
+## Roadmap
+
+What's coming next for Adamant:
+
+| Feature | Description |
+|---------|-------------|
+| `adamant fix <PR-URL>` | Point Adamant at a stale or stuck PR and let it diagnose what's blocking it — conflicts, failing checks, outdated reviews — and push a fix |
+| `adamant scan` | Run Adamant against your whole repo to surface UX friction before users report it — slow pages, broken flows, confusing errors |
+| Self-improving prompt agent | Adamant learns from every wish it fulfills, getting better at understanding your codebase and your team's patterns over time |
+| Linear + Slack integration | Pipe wishes in directly from a Linear ticket or Slack message — no copy-paste required |
+| JSON output mode | Get structured output from any command (`--json`) for scripting, dashboards, or piping into other tools |
+
+Want to influence what gets built first? [Open an issue](https://github.com/adamant-cli/adamant/issues) or share feedback.
+
+---
+
 ## Requirements
 
 - Node.js 18+
