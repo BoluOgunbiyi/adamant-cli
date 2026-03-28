@@ -26,11 +26,33 @@ Adamant reads your code and opens a pull request.
 | Code review + merge | You review + merge |
 | **~3 weeks** | **~60 seconds** |
 
-## Install
+## Setup
+
+### 1. Install
 
 ```bash
 npm install -g adamant-cli
 ```
+
+Requires Node.js 18 or higher.
+
+### 2. Get a Claude API key
+
+Go to [console.anthropic.com](https://console.anthropic.com) and create an API key. Keys start with `sk-ant-`.
+
+### 3. Set up GitHub access
+
+Either install the [GitHub CLI](https://cli.github.com) and run `gh auth login`, or have a [personal access token](https://github.com/settings/tokens) ready with `repo` scope.
+
+### 4. Run first-time setup
+
+```bash
+adamant
+```
+
+Adamant will walk you through entering your API key and GitHub token. Takes about 30 seconds. Config is stored at `~/.adamant/config.json`.
+
+---
 
 ## Examples
 
@@ -57,36 +79,125 @@ A draft PR on GitHub with:
 
 You review. You merge. Your product is better.
 
+---
+
 ## Commands
 
+### `adamant wish "<description>"`
+
+Describe what you want changed in plain English. Adamant reads your repo, writes the fix, and opens a draft PR.
+
 ```bash
-adamant wish "..."           # Make a wish → get a PR
-adamant wish "..." --preview # See the diff before creating the PR
-adamant wish "..." --dry-run # Show what would change, don't create anything
-adamant log                  # See your wish history
-adamant log --stats          # Your impact stats
-adamant config               # View your settings
+adamant wish "the error messages are confusing"
 ```
+
+**Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--preview` | Show the diff and PR description before creating the PR |
+| `--dry-run` | Show what would change without creating a branch or PR |
+| `--yes` / `-y` | Skip the cost confirmation prompt |
+| `--model <model>` | Use a specific Claude model (see Models section below) |
+| `--ready` | Create the PR as ready for review instead of a draft |
+
+```bash
+# Preview changes before submitting
+adamant wish "loading is too slow on the dashboard" --preview
+
+# Skip confirmation, no PR created
+adamant wish "fix the mobile layout" --dry-run
+
+# Skip cost confirmation
+adamant wish "improve error messages" --yes
+
+# Use a more powerful model for complex changes
+adamant wish "refactor the checkout flow" --model claude-opus-4-6
+
+# Open PR as ready for review (not a draft)
+adamant wish "fix typo in settings page" --ready
+```
+
+---
+
+### `adamant log`
+
+View your wish history — every wish you've made, the PR it opened, and what it cost.
+
+```bash
+adamant log
+```
+
+**Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--stats` | Show aggregated stats (total wishes, PRs opened, total cost) |
+
+```bash
+adamant log --stats
+```
+
+---
+
+### `adamant config`
+
+View your current Adamant configuration: API key, GitHub token status, default model, and preview preference.
+
+```bash
+adamant config
+```
+
+**Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--reset` | Wipe your config and run the setup wizard again |
+
+```bash
+# Re-run setup (e.g. to update your API key or GitHub token)
+adamant config --reset
+```
+
+---
+
+## Models
+
+| Model | Flag value | Speed | Cost per wish | Best for |
+|-------|-----------|-------|---------------|----------|
+| Claude Sonnet 4.6 *(default)* | `claude-sonnet-4-6` | Fast | ~$0.20 | Most wishes |
+| Claude Opus 4.6 | `claude-opus-4-6` | Slower | ~$1.00 | Complex or large codebases |
+| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` | Fastest | ~$0.05 | Simple, focused changes |
+
+Switch models per-wish with `--model`:
+```bash
+adamant wish "redesign the onboarding flow" --model claude-opus-4-6
+```
+
+---
 
 ## FAQ
 
 **How much does it cost?**
-~$0.20 per wish. You use your own Claude API key.
+~$0.20 per wish using the default model. You use your own Claude API key and pay Anthropic directly. Adamant itself is free.
 
 **Will it break my code?**
-No. PRs are drafts by default. You review everything before merging.
+No. PRs are drafts by default. You review everything before merging. Use `--dry-run` to preview changes without creating anything.
 
 **Is it just Claude Code with extra steps?**
 No. Claude Code speaks engineer. Adamant speaks product. You say "checkout abandonment" not "refactor CartCheckout.tsx." The translation is the product.
 
-**What models does it support?**
-Claude Sonnet 4.6 by default (fast, ~$0.20/wish). Pass `--model claude-opus-4-6` for higher accuracy on complex wishes.
+**Can I change the default model?**
+Not via a config flag yet, but you can pass `--model` on any wish. Run `adamant config --reset` to re-run setup if you want to reconfigure your key or token.
+
+**What if I have uncommitted changes?**
+Adamant will auto-stash them before running and restore them after. You'll see a note in the output when this happens.
 
 ## Requirements
 
 - Node.js 18+
 - A Claude API key ([get one here](https://console.anthropic.com))
-- GitHub access (via `gh` CLI or personal access token)
+- GitHub access (via `gh` CLI or personal access token with `repo` scope)
 
 ## License
 
