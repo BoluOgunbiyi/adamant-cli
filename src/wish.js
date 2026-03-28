@@ -96,6 +96,31 @@ export async function runWish(wishText, options = {}) {
   // 7. Preview gate
   const showPreview = options.preview || options.dryRun || config.preview_preference === null;
 
+  if (options.dryRun) {
+    if (isTTY) {
+      console.log('');
+      console.log(chalk.bold('  Changes:'));
+      console.log(formatDiff(applied, isTTY));
+      console.log('');
+      console.log(chalk.bold('  PR Description:'));
+      console.log('  ' + prDescription.split('\n').join('\n  '));
+    } else {
+      console.log(formatDiff(applied, false));
+      console.log(prDescription);
+    }
+    console.log(isTTY ? chalk.dim('  --dry-run: No branch or PR created.') : '--dry-run: No branch or PR created.');
+    // Revert applied edits
+    for (const edit of applied) {
+      const { readFileSync, writeFileSync } = await import('fs');
+      const { join } = await import('path');
+      const fullPath = join(repoRoot, edit.path);
+      let content = readFileSync(fullPath, 'utf-8');
+      content = content.replace(edit.new_content, edit.old_content);
+      writeFileSync(fullPath, content);
+    }
+    return;
+  }
+
   if (showPreview && isTTY) {
     console.log('');
     console.log(chalk.bold('  Changes:'));
@@ -104,21 +129,6 @@ export async function runWish(wishText, options = {}) {
     console.log(chalk.bold('  PR Description:'));
     console.log('  ' + prDescription.split('\n').join('\n  '));
     console.log('');
-
-    if (options.dryRun) {
-      console.log(chalk.dim('  --dry-run: No branch or PR created.'));
-      // Revert applied edits
-      const { applyEdits: revert } = await import('./edit.js');
-      for (const edit of applied) {
-        const { readFileSync, writeFileSync } = await import('fs');
-        const { join } = await import('path');
-        const fullPath = join(repoRoot, edit.path);
-        let content = readFileSync(fullPath, 'utf-8');
-        content = content.replace(edit.new_content, edit.old_content);
-        writeFileSync(fullPath, content);
-      }
-      return;
-    }
 
     if (config.preview_preference === null) {
       const answer = await ask('  [s]ubmit / [e]dit wish / [c]ancel: ');
