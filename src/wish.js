@@ -251,14 +251,18 @@ export async function runWish(wishText, options = {}) {
   // 11. Save context
   try { saveContext(repoRoot, wishText, applied); } catch { /* non-blocking */ }
 
-  // 12. Restore stashed changes
+  // 12. Return to original branch (enables chaining: wish && wish && wish)
+  const { default: simpleGit } = await import('simple-git');
+  const git = simpleGit(repoRoot);
+  await git.checkout(originalBranch);
+
+  // 13. Restore stashed changes
   if (wasStashed) {
-    await cleanup(repoRoot, originalBranch, wishBranch);
     await popStash(repoRoot);
     if (isTTY) console.log(chalk.dim('  Restored your uncommitted changes.'));
   }
 
-  // 13. Show result
+  // 14. Show result
   const { getHistory } = await import('./history.js');
   const isFirstWish = getHistory().length <= 1; // just saved this one
   if (isTTY) {
