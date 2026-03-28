@@ -4,6 +4,7 @@ import { join } from 'path';
 import { execSync } from 'child_process';
 import { createInterface } from 'readline';
 import { ConfigNotFound, ConfigParseError } from './errors.js';
+import Anthropic from '@anthropic-ai/sdk';
 
 const CONFIG_DIR = join(homedir(), '.adamant');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
