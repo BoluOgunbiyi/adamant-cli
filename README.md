@@ -2,7 +2,7 @@
 
 > I'm a PM. I just shipped a fix to production without opening Jira.
 
-<!-- TODO: Add 30-second GIF demo here -->
+<!-- GIF demo coming soon -->
 
 ## Try it now
 
@@ -100,6 +100,8 @@ adamant wish "the error messages are confusing"
 | `--yes` / `-y` | Skip the cost confirmation prompt |
 | `--model <model>` | Use a specific Claude model (see Models section below) |
 | `--ready` | Create the PR as ready for review instead of a draft |
+| `--local` | Apply changes locally without creating a branch or PR |
+| `--file <path>` | Focus on a specific file or directory |
 
 ```bash
 # Preview changes before submitting
@@ -116,6 +118,12 @@ adamant wish "refactor the checkout flow" --model claude-opus-4-6
 
 # Open PR as ready for review (not a draft)
 adamant wish "fix typo in settings page" --ready
+
+# Apply changes locally without creating a PR
+adamant wish "fix the save button" --local
+
+# Focus on a specific file
+adamant wish "fix the save button" --file src/components/Settings.tsx
 ```
 
 ---
@@ -203,8 +211,8 @@ What's coming next for Adamant:
 |---------|-------------|
 | PR description front and center in `--preview` | When you run `adamant wish --preview`, the PR description now appears before the code diff — so you see the plain-English summary of what changed first, then the technical details |
 | Remember failed wishes | When a wish can't be applied, Adamant saves it and uses it to improve future results — so the more you use it, the better it gets at understanding your codebase |
-| `--file <path>` flag | Tell Adamant exactly which file or component to focus on — useful when you know where the problem lives and want a faster, more targeted fix |
-| `--local` mode | Apply changes to your working directory without creating a branch or opening a PR — for when you want to review the code yourself before pushing anything to GitHub |
+| ~~`--file <path>` flag~~ | **Shipped.** See Commands section above. |
+| ~~`--local` mode~~ | **Shipped.** See Commands section above. |
 | `adamant undo` | Made a wish you regret? `adamant undo` closes the last PR and reverts the branch — one command to roll back your last change |
 | **Remote Prompt Loading** | The CLI fetches the Adamant system prompt from the server at runtime instead of bundling it locally. Run `adamant login` to create a free account — free tier includes 10 wishes per month. Keeps the product logic on the server (protecting IP) while the CLI stays fully open source. |
 
@@ -229,7 +237,7 @@ No Claude API key needed. Instead of calling Claude directly, the CLI sends your
 | Linear + Slack integration | Pipe wishes in directly from a Linear ticket or Slack message — no copy-paste required |
 | JSON output mode | Get structured output from any command (`--json`) for scripting, dashboards, or piping into other tools |
 
-Want to influence what gets built first? [Open an issue](https://github.com/adamant-cli/adamant/issues) or share feedback.
+Want to influence what gets built first? [Open an issue](https://github.com/BoluOgunbiyi/adamant-cli/issues) or share feedback.
 
 ---
 
