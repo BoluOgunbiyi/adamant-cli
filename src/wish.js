@@ -146,13 +146,13 @@ export async function runWish(wishText, options = {}) {
     }
     console.log(isTTY ? chalk.dim('  --dry-run: No branch or PR created.') : '--dry-run: No branch or PR created.');
     // Revert changes
-    const { execSync } = await import('child_process');
+    const { execFileSync } = await import('child_process');
     const { unlinkSync } = await import('fs');
     for (const edit of applied) {
       if (edit.type === 'create') {
         try { unlinkSync(join(repoRoot, edit.path)); } catch { /* already gone */ }
       } else {
-        execSync(`git checkout -- "${edit.path}"`, { cwd: repoRoot });
+        execFileSync('git', ['checkout', '--', edit.path], { cwd: repoRoot });
       }
     }
     if (wasStashed) await popStash(repoRoot);
@@ -179,13 +179,13 @@ export async function runWish(wishText, options = {}) {
       }
 
       if (choice === 'c') {
-        const { execSync } = await import('child_process');
+        const { execFileSync } = await import('child_process');
         const { unlinkSync } = await import('fs');
         for (const edit of applied) {
           if (edit.type === 'create') {
             try { unlinkSync(join(repoRoot, edit.path)); } catch {}
           } else {
-            execSync(`git checkout -- "${edit.path}"`, { cwd: repoRoot });
+            execFileSync('git', ['checkout', '--', edit.path], { cwd: repoRoot });
           }
         }
         console.log(chalk.dim('  Cancelled. No changes made.'));
@@ -194,13 +194,13 @@ export async function runWish(wishText, options = {}) {
       }
 
       if (choice === 'e') {
-        const { execSync } = await import('child_process');
+        const { execFileSync } = await import('child_process');
         const { unlinkSync } = await import('fs');
         for (const edit of applied) {
           if (edit.type === 'create') {
             try { unlinkSync(join(repoRoot, edit.path)); } catch {}
           } else {
-            execSync(`git checkout -- "${edit.path}"`, { cwd: repoRoot });
+            execFileSync('git', ['checkout', '--', edit.path], { cwd: repoRoot });
           }
         }
         if (wasStashed) await popStash(repoRoot);

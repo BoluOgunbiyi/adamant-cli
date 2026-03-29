@@ -16,7 +16,7 @@ export function saveWish({ wish, prUrl, repo, cost, filesChanged, prNumber }) {
     filesChanged,
     timestamp: new Date().toISOString(),
   });
-  writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+  writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2), { mode: 0o600 });
 }
 
 export function getHistory() {
