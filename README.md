@@ -2,7 +2,9 @@
 
 > I'm a PM. I just shipped a fix to production without opening Jira.
 
-<!-- GIF demo coming soon -->
+<p align="center">
+  <img src="demo.svg" alt="Adamant CLI demo — one sentence in, draft PR out" width="680"/>
+</p>
 
 ## Try it now
 
