@@ -52,6 +52,8 @@ The quality of Adamant-generated PRs rivals what engineers write themselves. Cle
 ### ⭐×12 — PRs Ship With Tests
 Every PR Adamant opens includes tests — unit, integration, or end-to-end depending on what changed. Engineers don't have to add coverage after the fact. QA doesn't have to regression-test manually. Adamant writes the code and proves it works.
 
+> **Risk Scoring.** At this star, every PR also gets a risk label — Low, Medium, or High — based on which files were touched. Adamant knows the difference. A CSS change on a marketing page is Low: ship it. A change to the auth flow, a database schema migration, or a payment handler is High: flag it, slow it down, require explicit approval. The label appears in the PR title and description, so reviewers can calibrate their attention before they read a single line of code. High-risk PRs get extra context: what could go wrong, what to test manually, and which other files might be affected.
+
 ### ⭐×13 — Understands Product Roadmap, Prioritizes by Business Impact
 Adamant knows what your company is trying to do. It reads your roadmap, your OKRs, your north star metrics. When multiple wishes are in queue, it sequences them by expected business impact — not order received. It flags when a wish conflicts with a strategic priority and suggests alternatives.
 
@@ -63,8 +65,12 @@ No PM in the loop. A customer submits feedback — in a support widget, a Slack 
 ### ⭐×15 — Watches Production Metrics and Auto-Fixes Revenue Drops
 Adamant monitors live dashboards — conversion rates, revenue per session, funnel drop-off, retention curves. When a metric moves in the wrong direction, it diagnoses the cause, writes a fix, and opens a PR before anyone notices the problem. The on-call engineer becomes optional for a class of issues that used to page them at 2am.
 
+> **Outcome Tracking.** Every PR Adamant opens at this star gets linked to a specific PostHog metric — the one it was trying to move. Seven days after merge, Adamant checks back automatically: did the conversion rate go up? Did the drop-off on that step decrease? The result gets posted as a comment on the original PR: "This fix improved checkout completion by 4.2%" or "No measurable change detected — may need a different approach." The wish-to-PR loop becomes the wish-to-PR-to-outcome loop. Every change has a verdict.
+
 ### ⭐×16 — Runs A/B Tests on Its Own PRs and Rolls Back if Metrics Don't Improve
 Adamant doesn't just ship changes — it validates them. It wraps each PR in a feature flag, runs a controlled experiment, monitors the metric it was trying to improve, and either promotes the change or rolls it back. No human needs to design the experiment. Adamant closes the loop between "shipped" and "worked."
+
+> **Closing the loop.** Building on the outcome tracking from Star 15, this star makes the loop fully automated. Adamant doesn't just report what happened — it acts on it. If the PostHog data shows the metric didn't move after 7 days, Adamant opens a follow-up PR with a revised approach. If it moved in the wrong direction, it rolls back. The PM's job shifts from "did that fix work?" to reviewing Adamant's own retrospectives on what it shipped.
 
 ### ⭐×17 — Multi-Repo Coordinated PRs
 A single wish spans multiple repositories: the frontend, the API, the mobile app, the data pipeline. Adamant understands the dependency graph, sequences the changes correctly, and opens coordinated PRs across repos. What used to require a tech lead to orchestrate happens in seconds.
@@ -91,6 +97,40 @@ Most AI coding tools are commodity — the same model, the same context window, 
 **Star 19: Organizational memory.** When Adamant has trained on your codebase, your PRs, your PM's past decisions, and your customers' behavior, it has internalized something that took your team years to build. A new tool starting from scratch has none of that. Every wish you make is training data. Every PR you merge is signal. The flywheel spins faster the longer you use it, and slower for anyone who starts over.
 
 The vision isn't a smarter command-line tool. It's a system that gets better the more you use it, knows your business better than any new hire, and compounds that knowledge into product velocity that compounds quarter over quarter.
+
+---
+
+## THE MOAT: Adamant as the Ledger of Why Code Exists
+
+Most AI coding tools answer the question *what does this code do?* Adamant answers a harder question: *why does this code exist?*
+
+Every wish is a record of intent. A PM typed a sentence, Adamant scoped it to specific files, opened a PR, measured the outcome. That chain — intent → scope → risk → outcome → accuracy — is logged, versioned, and accumulated over time. No other tool has it, because no other tool sits at the moment the intent is formed.
+
+This is the moat. Not code generation — anyone can generate code. The moat is the causal chain from business intent to scoped change to risk profile to measured outcome, repeated thousands of times across every team that uses Adamant. Over time, Adamant becomes the institutional memory of *why your product looks the way it does*. New engineers can read the wish history and understand decisions that would otherwise be lost in Slack threads and faded memory. Auditors can trace a change back to the business intent that drove it. PMs can see which wishes actually moved metrics and which didn't.
+
+The compounding effect: every wish that gets measured and validated makes the next wish more accurate. Every outcome that gets logged makes the risk scoring smarter. Every pattern across teams makes the intent-to-scope translation more reliable. A competitor starting today starts with zero of this signal. A team that has used Adamant for a year has built something that cannot be replicated by switching tools.
+
+**The ledger is the product. The code is a side effect.**
+
+---
+
+## THE GROWTH TEAM WEDGE: The Sharpest Go-to-Market Angle
+
+The team most immediately primed for Adamant is not engineering. It's growth.
+
+Growth and conversion teams live and die by a loop: form a hypothesis, run an experiment, measure the delta, ship the winner, repeat. Every part of that loop except "measure the delta" currently requires an engineer. A PM on a growth team has a hypothesis about why users are dropping off on step 3 of checkout. Writing the fix, scoping it, opening the PR, deploying it, watching the metrics — all of that sits in an engineering queue that moves at engineering speed, not growth speed.
+
+Adamant collapses that queue. The loop becomes:
+
+**Hypothesis → wish → scoped PR → merge → PostHog delta → next hypothesis.**
+
+No ticket. No sprint planning. No "we'll get to it next cycle." A growth PM can run three experiments in the time it used to take to get one into the queue. The ROI is direct and revenue-linked: faster experimentation velocity means more winners shipped per quarter, which means more conversion, more retention, more revenue.
+
+This is why growth teams are the wedge. They already think in hypotheses and metrics. They already have PostHog or Mixpanel or Amplitude open all day. They already know the number they're trying to move. Adamant just removes the friction between the hypothesis and the shipped test.
+
+The pitch to a growth team is not "save engineering time." It's: **"Run twice as many experiments this quarter. Each one comes with a measured outcome. Your roadmap becomes a ranked list of what actually worked."**
+
+That's a pitch with a number attached. Growth teams buy on numbers.
 
 ---
 
