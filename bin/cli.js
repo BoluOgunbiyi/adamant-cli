@@ -30,7 +30,9 @@ program
   .option('--dry-run', 'Show what would change without creating anything')
   .option('--yes, -y', 'Skip confirmation prompts')
   .option('--model <model>', 'Claude model to use')
+  .option('--file <path>', 'Focus on a specific file or directory')
   .option('--ready', 'Create PR as ready for review (default: draft)')
+  .option('--local', 'Apply changes locally without creating a branch or PR')
   .action(async (textParts, options) => {
     const text = textParts.join(' ');
     try {

@@ -21,7 +21,7 @@ export function extractKeywords(wish) {
     .filter(w => w.length > 2 && !STOP_WORDS.has(w));
 }
 
-export function readRepo(wish, repoRoot) {
+export function readRepo(wish, repoRoot, targetFile) {
   let rawFiles;
   try {
     rawFiles = execSync('git ls-files', { cwd: repoRoot, encoding: 'utf-8' });
@@ -35,28 +35,43 @@ export function readRepo(wish, repoRoot) {
   const fileTree = files.join('\n');
 
   const keywords = extractKeywords(wish);
+
+  // Prioritized target file(s) go first
+  const targetPaths = [];
+  if (targetFile) {
+    // Normalize: strip leading ./ or /
+    const normalized = targetFile.replace(/^\.\//, '').replace(/^\//, '');
+    for (const file of files) {
+      // Exact file match or directory prefix match
+      if (file === normalized || file.startsWith(normalized.endsWith('/') ? normalized : normalized + '/')) {
+        targetPaths.push(file);
+      }
+    }
+  }
+
   const matchedPaths = [];
 
   for (const name of ALWAYS_INCLUDE) {
     const match = files.find(f => f.endsWith(name) && f.split('/').length <= 2);
-    if (match && !matchedPaths.includes(match)) matchedPaths.push(match);
+    if (match && !matchedPaths.includes(match) && !targetPaths.includes(match)) matchedPaths.push(match);
   }
 
   for (const file of files) {
     const lower = file.toLowerCase();
     for (const kw of keywords) {
-      if (lower.includes(kw) && !matchedPaths.includes(file)) {
+      if (lower.includes(kw) && !matchedPaths.includes(file) && !targetPaths.includes(file)) {
         matchedPaths.push(file);
         break;
       }
     }
   }
 
-  const cappedPaths = matchedPaths.slice(0, 20);
+  // Target files first, then keyword-matched, capped at 20 total
+  const allPaths = [...targetPaths, ...matchedPaths].slice(0, 20);
   let totalChars = fileTree.length;
   const fileContents = [];
 
-  for (const path of cappedPaths) {
+  for (const path of allPaths) {
     try {
       const fullPath = join(repoRoot, path);
       const content = readFileSync(fullPath, 'utf-8');

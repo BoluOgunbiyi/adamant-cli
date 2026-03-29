@@ -38,8 +38,10 @@ export async function runWish(wishText, options = {}) {
   // 2. Check git state (auto-stashes dirty tracked files)
   const repoRoot = await getRepoRoot();
 
-  // Check remote exists before doing any work
-  await checkRemote(repoRoot);
+  // Check remote exists before doing any work (skip in local mode)
+  if (!options.local) {
+    await checkRemote(repoRoot);
+  }
 
   const { branch: originalBranch, wasStashed } = await checkGitState(repoRoot, true);
 
@@ -54,7 +56,7 @@ export async function runWish(wishText, options = {}) {
 
   // 3. Read repo
   const context = loadContext(repoRoot);
-  const { fileTree, fileContents, tokenEstimate, fileCount } = readRepo(wishText, repoRoot);
+  const { fileTree, fileContents, tokenEstimate, fileCount } = readRepo(wishText, repoRoot, options.file);
 
   // 4. Cost estimate (per-model pricing)
   const MODEL_PRICING = {
@@ -80,7 +82,7 @@ export async function runWish(wishText, options = {}) {
 
   onProgress('Reading your codebase...');
   const systemPrompt = buildSystemPrompt();
-  const userPrompt = buildUserPrompt(wishText, fileTree, fileContents, context);
+  const userPrompt = buildUserPrompt(wishText, fileTree, fileContents, context, options.file);
 
   const { edits, prDescription } = await callClaude(config, systemPrompt, userPrompt, repoRoot, onProgress);
 
@@ -208,7 +210,36 @@ export async function runWish(wishText, options = {}) {
     }
   }
 
-  // 8. Create branch, commit, push
+  // 8. Local mode — keep changes on disk, skip branch/commit/push/PR
+  if (options.local) {
+    if (isTTY) {
+      console.log('');
+      console.log(chalk.bold('  Changes:'));
+      console.log(await formatDiff(applied, isTTY));
+      console.log('');
+    }
+
+    // Save context (codebase learning)
+    try { saveContext(repoRoot, wishText, applied); } catch { /* non-blocking */ }
+
+    // Restore stashed changes
+    if (wasStashed) {
+      await popStash(repoRoot);
+      if (isTTY) console.log(chalk.dim('  Restored your uncommitted changes.'));
+    }
+
+    if (isTTY) {
+      console.log(chalk.green.bold('  Changes applied locally. No branch or PR created.'));
+      console.log(chalk.dim(`  Files changed: ${applied.length}`));
+      console.log('');
+    } else {
+      console.log('Changes applied locally. No branch or PR created.');
+      console.log(`Files: ${applied.map(e => e.path).join(', ')}`);
+    }
+    return;
+  }
+
+  // 9. Create branch, commit, push
   const wishBranch = await createBranch(repoRoot, wishText);
   onProgress?.('Creating pull request...');
 

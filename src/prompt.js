@@ -53,8 +53,12 @@ CRITICAL FILE TARGETING RULES:
 - For BUG FIXES: modify existing files, don't create new ones unless absolutely necessary`;
 }
 
-export function buildUserPrompt(wish, fileTree, fileContents, context) {
+export function buildUserPrompt(wish, fileTree, fileContents, context, targetFile) {
   let prompt = `## The Wish\n\n"${wish}"\n\n`;
+
+  if (targetFile) {
+    prompt += `**The PM has specifically indicated that the issue is in: \`${targetFile}\`. Focus your changes on this file or directory.**\n\n`;
+  }
 
   prompt += `## Repository Structure\n\n\`\`\`\n${fileTree}\n\`\`\`\n\n`;
 
