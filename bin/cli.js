@@ -118,3 +118,12 @@ program.action(async () => {
 });
 
 program.parse();
+
+// Check for unknown commands after parsing
+const knownCommands = ['wish', 'log', 'config'];
+const args = process.argv.slice(2);
+if (args.length > 0 && !args[0].startsWith('-') && !knownCommands.includes(args[0])) {
+  console.error(`\n  Unknown command: ${args[0]}`);
+  console.error('  Run `adamant --help` to see available commands.\n');
+  process.exit(1);
+}
