@@ -321,6 +321,7 @@ export async function runWish(wishText, options = {}) {
     console.log('');
     console.log(chalk.dim(`  Files changed: ${applied.length}`));
     console.log(chalk.dim(`  Cost: ~$${actualCost.toFixed(2)} | Time: ${elapsed}s`));
+    console.log(chalk.dim('  Changed your mind? Run `adamant undo` to close this PR.'));
     console.log('');
   } else {
     // Plain output for piping

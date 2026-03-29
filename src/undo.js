@@ -36,7 +36,7 @@ export async function runUndo() {
   }
 
   if (!last) {
-    console.log('\n  No wishes to undo. All recent wishes are already undone or were local/dry-run.\n');
+    console.log('\n  All your wishes have already been undone. Run `adamant wish` to make a new one.\n');
     return;
   }
 
@@ -83,8 +83,14 @@ export async function runUndo() {
     const { data: pr } = await octokit.pulls.get({ owner, repo, pull_number: prNumber });
 
     if (pr.merged) {
-      console.log(chalk.yellow(`  PR #${prNumber} is already merged. The code is on ${pr.base.ref}.`));
-      console.log(chalk.yellow('  To fully revert, ask your engineer to run: git revert <merge-commit>'));
+      console.log(chalk.yellow(`  PR #${prNumber} was already merged into ${pr.base.ref}.`));
+      console.log(chalk.yellow('  Undo cannot reverse merged code.'));
+      console.log(chalk.dim('  Ask your engineer to run: git revert <merge-commit>'));
+      console.log('');
+      // Mark as merged, not undone
+      history[lastIndex].status = 'merged';
+      writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2), { mode: 0o600 });
+      return;
     } else if (pr.state === 'closed') {
       console.log(chalk.dim(`  PR #${prNumber} is already closed.`));
     } else {
@@ -112,8 +118,9 @@ export async function runUndo() {
     } catch { /* not in a git repo or branch doesn't exist locally */ }
 
   } catch (err) {
-    console.log(chalk.red(`  Could not close PR: ${err.message}`));
-    console.log(chalk.dim('  You may need to close it manually on GitHub.\n'));
+    console.log(chalk.red('  Could not reach GitHub to close the PR.'));
+    console.log(chalk.dim(`  Close it manually: ${last.prUrl}`));
+    if (process.env.DEBUG) console.log(chalk.dim(`  Error: ${err.message}`));
     return;
   }
 
@@ -124,6 +131,7 @@ export async function runUndo() {
 
   console.log('');
   console.log(chalk.green.bold('  Wish undone.'));
-  console.log(chalk.dim(`  PR closed. Branch deleted. History updated.`));
+  console.log(chalk.dim('  PR closed and branch deleted.'));
+  console.log(chalk.dim('  Run `adamant wish` to try again.'));
   console.log('');
 }

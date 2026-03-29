@@ -129,6 +129,7 @@ program.action(async () => {
     console.log('  ' + chalk.dim('Other commands:'));
     console.log(chalk.dim('    adamant log           - see your wish history'));
     console.log(chalk.dim('    adamant log --stats   - view your impact stats'));
+    console.log(chalk.dim('    adamant undo          - revert your last wish'));
     console.log(chalk.dim('    adamant config        - view your current settings'));
     console.log('');
     console.log('  ' + chalk.dim(`Model: ${config.default_model || 'claude-sonnet-4-6'} · ~$0.20/wish`));
