@@ -10,6 +10,7 @@ import { runWish } from '../src/wish.js';
 import { runDemo } from '../src/demo.js';
 import { formatHistory, formatStats } from '../src/history.js';
 import { loadConfig, saveConfig, runSetup } from '../src/config.js';
+import { runUndo } from '../src/undo.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
@@ -88,6 +89,24 @@ program
     console.log('');
   });
 
+// Undo command
+program
+  .command('undo')
+  .description('Undo the last wish - close the PR, delete the branch')
+  .action(async () => {
+    try {
+      await runUndo();
+    } catch (err) {
+      if (err.userMessage) {
+        console.error('\n  ' + chalk.red(err.userMessage));
+      } else {
+        console.error('\n  ' + chalk.red('Something went wrong.'));
+        console.error('  ' + chalk.dim(err.message));
+      }
+      process.exit(1);
+    }
+  });
+
 // Default: show help or demo
 program.action(async () => {
   if (!configExists()) {
@@ -120,7 +139,7 @@ program.action(async () => {
 program.parse();
 
 // Check for unknown commands after parsing
-const knownCommands = ['wish', 'log', 'config'];
+const knownCommands = ['wish', 'log', 'config', 'undo'];
 const args = process.argv.slice(2);
 if (args.length > 0 && !args[0].startsWith('-') && !knownCommands.includes(args[0])) {
   console.error(`\n  Unknown command: ${args[0]}`);
