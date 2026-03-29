@@ -206,6 +206,18 @@ What's coming next for Adamant:
 | `--file <path>` flag | Tell Adamant exactly which file or component to focus on — useful when you know where the problem lives and want a faster, more targeted fix |
 | `--local` mode | Apply changes to your working directory without creating a branch or opening a PR — for when you want to review the code yourself before pushing anything to GitHub |
 | `adamant undo` | Made a wish you regret? `adamant undo` closes the last PR and reverts the branch — one command to roll back your last change |
+| **Remote Prompt Loading** | The CLI fetches the Adamant system prompt from the server at runtime instead of bundling it locally. Run `adamant login` to create a free account — free tier includes 10 wishes per month. Keeps the product logic on the server (protecting IP) while the CLI stays fully open source. |
+
+### V2 — Full Proxy Mode
+
+No Claude API key needed. Instead of calling Claude directly, the CLI sends your wish to the Adamant API, which adds the system prompt and returns the edits. You pay per wish — no Anthropic account required.
+
+| Feature | Description |
+|---------|-------------|
+| **Adamant-hosted AI** | The CLI sends your wish to the Adamant API. Adamant adds the system prompt, calls Claude, and streams the edits back. You never touch the Claude API directly. |
+| **Pay per wish** | No monthly subscription, no API key setup. Buy wishes when you need them — casual users pay only for what they use. |
+| **Zero API key setup** | New users go from install to first wish without creating an Anthropic account. The setup flow drops from ~5 minutes to ~30 seconds. |
+| **Prompt stays private** | The system prompt never ships in the CLI binary — it lives server-side. Open source code, protected product logic. |
 
 ### Later
 
