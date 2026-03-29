@@ -91,9 +91,9 @@ export async function runWish(wishText, options = {}) {
     if (isTTY) {
       console.log('');
       console.log(chalk.dim('  Tips to get better results:'));
-      console.log(chalk.dim('  - Name the specific page or screen: "on the settings page, ..."'));
-      console.log(chalk.dim('  - Describe what the user sees: "users see a blank screen when ..."'));
-      console.log(chalk.dim('  - For new features, say what to add: "add a toast notification that ..."'));
+      console.log(chalk.dim(' - Name the specific page or screen: "on the settings page, ..."'));
+      console.log(chalk.dim(' - Describe what the user sees: "users see a blank screen when ..."'));
+      console.log(chalk.dim(' - For new features, say what to add: "add a toast notification that ..."'));
       console.log('');
       console.log(chalk.dim(`  Your wish was: "${wishText}"`));
       console.log(chalk.dim('  Try something like:'));
@@ -203,14 +203,14 @@ export async function runWish(wishText, options = {}) {
         return;
       }
 
-      // 's' = submit — save preference (skip preview next time)
+      // 's' = submit - save preference (skip preview next time)
       const { saveConfig } = await import('./config.js');
       config.preview_preference = 'skip';
       saveConfig(config);
     }
   }
 
-  // 8. Local mode — keep changes on disk, skip branch/commit/push/PR
+  // 8. Local mode - keep changes on disk, skip branch/commit/push/PR
   if (options.local) {
     if (isTTY) {
       console.log('');

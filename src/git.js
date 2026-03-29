@@ -11,10 +11,10 @@ export async function checkGitState(repoRoot, autoStash = true) {
 
   // Check for detached HEAD
   if (!status.current) {
-    throw new DirtyTreeError(); // Reuse — detached HEAD is not a safe state for wishes
+    throw new DirtyTreeError(); // Reuse - detached HEAD is not a safe state for wishes
   }
 
-  // Only check tracked files (modified, staged, deleted) — ignore untracked files
+  // Only check tracked files (modified, staged, deleted) - ignore untracked files
   const trackedDirty = status.files.filter(f => f.index !== '?' && f.working_dir !== '?');
 
   if (trackedDirty.length > 0) {
@@ -53,7 +53,7 @@ export async function popStash(repoRoot) {
     if (stashList.total > 0 && stashList.latest?.message?.includes('adamant-auto-stash')) {
       await git.stash(['pop']);
     }
-  } catch { /* best effort — don't break the flow */ }
+  } catch { /* best effort - don't break the flow */ }
 }
 
 export async function getRepoRoot() {
@@ -99,7 +99,7 @@ export async function createBranch(repoRoot, wish) {
 export async function commitAndPush(repoRoot, message, editedFiles = []) {
   const git = simpleGit(repoRoot);
   try {
-    // Only stage files Adamant actually edited — never stage untracked files
+    // Only stage files Adamant actually edited - never stage untracked files
     if (editedFiles.length > 0) {
       await git.add(editedFiles);
     } else {

@@ -25,7 +25,7 @@ program
 program
   .command('wish')
   .argument('<text...>', 'Describe what you want changed in plain English')
-  .description('Make a wish — describe what you want changed in plain English')
+  .description('Make a wish - describe what you want changed in plain English')
   .option('--preview', 'See the diff before creating the PR')
   .option('--dry-run', 'Show what would change without creating anything')
   .option('--yes, -y', 'Skip confirmation prompts')
@@ -95,7 +95,7 @@ program.action(async () => {
   } else {
     const config = loadConfig();
     console.log('');
-    console.log(chalk.bold('  Hey, welcome back to Adamant! 👋'));
+    console.log(chalk.bold('  Welcome back to Adamant.'));
     console.log(chalk.dim('  English to Pull Request in 60 seconds.'));
     console.log('');
     console.log('  What would you like to fix today?');
@@ -108,9 +108,9 @@ program.action(async () => {
     console.log(chalk.dim('    adamant wish "the settings page is broken on mobile"'));
     console.log('');
     console.log('  ' + chalk.dim('Other commands:'));
-    console.log(chalk.dim('    adamant log           — see your wish history'));
-    console.log(chalk.dim('    adamant log --stats   — view your impact stats'));
-    console.log(chalk.dim('    adamant config        — view your current settings'));
+    console.log(chalk.dim('    adamant log           - see your wish history'));
+    console.log(chalk.dim('    adamant log --stats   - view your impact stats'));
+    console.log(chalk.dim('    adamant config        - view your current settings'));
     console.log('');
     console.log('  ' + chalk.dim(`Model: ${config.default_model || 'claude-sonnet-4-6'} · ~$0.20/wish`));
     console.log('');

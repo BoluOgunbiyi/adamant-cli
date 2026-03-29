@@ -24,7 +24,7 @@ export function applyEdits(edits, repoRoot) {
     // Handle edit_file operations
     try {
       if (!edit.old_content || edit.old_content.trim() === '') {
-        failed.push({ path: edit.path, error: new EditMatchError(edit.path, '(empty old_content — would match entire file)') });
+        failed.push({ path: edit.path, error: new EditMatchError(edit.path, '(empty old_content - would match entire file)') });
         continue;
       }
       let content = readFileSync(fullPath, 'utf-8');
@@ -72,7 +72,7 @@ export async function formatDiff(edits, isTTY) {
       const oldLines = edit.old_content.split('\n');
       const newLines = edit.new_content.split('\n');
       for (const line of oldLines) {
-        output += isTTY ? `  ${chalk.red('- ' + line)}\n` : `  - ${line}\n`;
+        output += isTTY ? `  ${chalk.red('- ' + line)}\n` : ` - ${line}\n`;
       }
       for (const line of newLines) {
         output += isTTY ? `  ${chalk.green('+ ' + line)}\n` : `  + ${line}\n`;

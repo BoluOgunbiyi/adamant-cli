@@ -68,7 +68,7 @@ function handleToolCall(toolName, input, repoRoot) {
 
   if (toolName === 'search_files') {
     try {
-      // Use writeFileSync to pass query safely — no shell injection
+      // Use writeFileSync to pass query safely - no shell injection
       const tmpPattern = join(repoRoot, '.adamant-search-tmp');
       writeFileSync(tmpPattern, input.query);
       const result = execSync(
@@ -168,7 +168,7 @@ export async function callClaude(config, systemPrompt, userPrompt, repoRoot, onP
 
     // If no tool calls, we're done
     // On end_turn, only break if there are no non-edit tool calls still needing results
-    // (edit_file edits are already collected above — they don't need a follow-up round)
+    // (edit_file edits are already collected above - they don't need a follow-up round)
     const pendingNonEditTools = toolUses.filter(tu => tu.name !== 'edit_file' && tu.name !== 'create_file');
     if (toolUses.length === 0 || (response.stop_reason === 'end_turn' && pendingNonEditTools.length === 0)) {
       break;
@@ -176,7 +176,7 @@ export async function callClaude(config, systemPrompt, userPrompt, repoRoot, onP
 
     // If this is the last iteration and there are still pending tool calls, warn the user
     if (i === 4) {
-      onProgress?.('⚠️  Claude reached the maximum number of steps and may not have finished. Try rephrasing your wish or breaking it into smaller steps.');
+      onProgress?.('Claude reached the maximum number of steps and may not have finished. Try rephrasing your wish or breaking it into smaller steps.');
       break;
     }
 

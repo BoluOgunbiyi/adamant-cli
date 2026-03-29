@@ -3,7 +3,7 @@
 > I'm a PM. I just shipped a fix to production without opening Jira.
 
 <p align="center">
-  <img src="demo.svg" alt="Adamant CLI demo — one sentence in, draft PR out" width="680"/>
+  <img src="demo.svg" alt="Adamant CLI demo - one sentence in, draft PR out" width="680"/>
 </p>
 
 ## Try it now
@@ -79,7 +79,7 @@ A draft PR on GitHub with:
 - A description written for PMs, not engineers
 - Expected user impact
 
-You review. You merge. Your product is better.
+You review. You merge. Done.
 
 ---
 
@@ -132,7 +132,7 @@ adamant wish "fix the save button" --file src/components/Settings.tsx
 
 ### `adamant log`
 
-View your wish history — every wish you've made, the PR it opened, and what it cost.
+View your wish history - every wish you've made, the PR it opened, and what it cost.
 
 ```bash
 adamant log
@@ -152,7 +152,7 @@ adamant log --stats
 
 ### `adamant config`
 
-View your current Adamant configuration: API key, GitHub token status, default model, and preview preference.
+View your current settings.
 
 ```bash
 adamant config
@@ -205,41 +205,30 @@ Adamant will auto-stash them before running and restore them after. You'll see a
 
 ## Roadmap
 
-What's coming next for Adamant:
+### V1.1
 
-### V1.1 — Coming soon
+- **Preview shows PR description first.** The plain-English summary before the diff.
+- **Failed wish memory.** Adamant learns from wishes that don't land.
+- **`adamant undo`** - closes the last PR and reverts the branch.
+- **Remote prompt loading.** `adamant login` creates a free account. 10 wishes/month free.
 
-| Feature | Description |
-|---------|-------------|
-| PR description front and center in `--preview` | When you run `adamant wish --preview`, the PR description now appears before the code diff — so you see the plain-English summary of what changed first, then the technical details |
-| Remember failed wishes | When a wish can't be applied, Adamant saves it and uses it to improve future results — so the more you use it, the better it gets at understanding your codebase |
-| ~~`--file <path>` flag~~ | **Shipped.** See Commands section above. |
-| ~~`--local` mode~~ | **Shipped.** See Commands section above. |
-| `adamant undo` | Made a wish you regret? `adamant undo` closes the last PR and reverts the branch — one command to roll back your last change |
-| **Remote Prompt Loading** | The CLI fetches the Adamant system prompt from the server at runtime instead of bundling it locally. Run `adamant login` to create a free account — free tier includes 10 wishes per month. Keeps the product logic on the server (protecting IP) while the CLI stays fully open source. |
+### V2 - Proxy Mode
 
-### V2 — Full Proxy Mode
+No Claude API key needed. The CLI sends wishes to the Adamant API. You pay per wish.
 
-No Claude API key needed. Instead of calling Claude directly, the CLI sends your wish to the Adamant API, which adds the system prompt and returns the edits. You pay per wish — no Anthropic account required.
-
-| Feature | Description |
-|---------|-------------|
-| **Adamant-hosted AI** | The CLI sends your wish to the Adamant API. Adamant adds the system prompt, calls Claude, and streams the edits back. You never touch the Claude API directly. |
-| **Pay per wish** | No monthly subscription, no API key setup. Buy wishes when you need them — casual users pay only for what they use. |
-| **Zero API key setup** | New users go from install to first wish without creating an Anthropic account. The setup flow drops from ~5 minutes to ~30 seconds. |
-| **Prompt stays private** | The system prompt never ships in the CLI binary — it lives server-side. Open source code, protected product logic. |
+- **Adamant-hosted AI.** System prompt lives server-side. You never touch Claude directly.
+- **Pay per wish.** No subscription. No API key setup.
+- **30-second onboarding.** Install, login, wish. That's it.
 
 ### Later
 
-| Feature | Description |
-|---------|-------------|
-| **Extension Integration** *(V3)* | The Adamant Chrome extension watches what users actually experience — capturing screenshots, rage clicks, and friction signals in real time. The CLI fixes code. V3 connects them: a PM spots a problem in the browser, clicks "wish", and Adamant automatically triggers the CLI to generate and open a PR. No copy-paste, no ticket — the wish flows directly from what the user sees in the browser to a code fix on GitHub. |
-| `adamant fix <PR-URL>` | Point Adamant at a stale or stuck PR and let it diagnose what's blocking it — conflicts, failing checks, outdated reviews — and push a fix |
-| `adamant scan` | Run Adamant against your whole repo to surface UX friction before users report it — slow pages, broken flows, confusing errors |
-| Linear + Slack integration | Pipe wishes in directly from a Linear ticket or Slack message — no copy-paste required |
-| JSON output mode | Get structured output from any command (`--json`) for scripting, dashboards, or piping into other tools |
+- **Chrome extension + CLI.** See a problem in the browser, click "wish", get a PR.
+- **`adamant fix <PR-URL>`** - fix stale or conflicted PRs.
+- **`adamant scan`** - find UX friction in your code before users report it.
+- **Linear + Slack integration.** Wishes from tickets and messages.
+- **`--json` output.** Structured output for scripting and dashboards.
 
-Want to influence what gets built first? [Open an issue](https://github.com/BoluOgunbiyi/adamant-cli/issues) or share feedback.
+[Open an issue](https://github.com/BoluOgunbiyi/adamant-cli/issues) to influence what ships next.
 
 ---
 
