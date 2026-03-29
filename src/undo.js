@@ -28,7 +28,7 @@ export async function runUndo() {
   let last = null;
   let lastIndex = -1;
   for (let i = history.length - 1; i >= 0; i--) {
-    if (history[i].status !== 'undone' && history[i].prUrl) {
+    if (!history[i].status && history[i].prUrl) {
       last = history[i];
       lastIndex = i;
       break;
