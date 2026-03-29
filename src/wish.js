@@ -45,6 +45,15 @@ export async function runWish(wishText, options = {}) {
 
   const { branch: originalBranch, wasStashed } = await checkGitState(repoRoot, true);
 
+  // Safety: restore stash if user hits Ctrl+C
+  const sigintHandler = async () => {
+    if (wasStashed) {
+      try { await popStash(repoRoot); } catch {}
+    }
+    process.exit(130);
+  };
+  process.on('SIGINT', sigintHandler);
+
   if (isTTY) {
     console.log('');
     console.log(chalk.dim(`  Repo: ${repoRoot.split('/').pop()}`));
@@ -194,12 +203,12 @@ export async function runWish(wishText, options = {}) {
             execSync(`git checkout -- "${edit.path}"`, { cwd: repoRoot });
           }
         }
+        if (wasStashed) await popStash(repoRoot);
         const newWish = await ask('  New wish: ');
         if (newWish.trim()) {
           return runWish(newWish.trim(), { ...options, preview: true });
         }
         console.log(chalk.dim('  Cancelled.'));
-        if (wasStashed) await popStash(repoRoot);
         return;
       }
 
@@ -250,14 +259,16 @@ export async function runWish(wishText, options = {}) {
     await commitAndPush(repoRoot, commitMsg, applied.map(e => e.path));
   } catch (err) {
     await cleanup(repoRoot, originalBranch, wishBranch);
+    if (wasStashed) await popStash(repoRoot);
     throw err;
   }
 
-  // 9. Create draft PR
+  // 10. Create draft PR
   const remoteUrl = await getRemoteUrl(repoRoot);
   const defaultBranch = await getDefaultBranch(config, remoteUrl);
 
-  const prTitle = `Fix: ${wishText.charAt(0).toUpperCase() + wishText.slice(1)}`;
+  const prTitlePrefix = commitPrefix === 'feat' ? 'Add' : 'Fix';
+  const prTitle = `${prTitlePrefix}: ${wishText.charAt(0).toUpperCase() + wishText.slice(1)}`;
   let prUrl, prNumber;
   try {
     ({ url: prUrl, number: prNumber } = await createPR(config, {
@@ -317,4 +328,7 @@ export async function runWish(wishText, options = {}) {
     console.log(`Title: ${prTitle}`);
     console.log(`Files: ${applied.map(e => e.path).join(', ')}`);
   }
+
+  // Clean up SIGINT handler
+  process.removeListener('SIGINT', sigintHandler);
 }

@@ -1,13 +1,20 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { join, dirname } from 'path';
+import { join, dirname, resolve } from 'path';
 import { EditMatchError, AmbiguousEditError } from './errors.js';
 
 export function applyEdits(edits, repoRoot) {
   const applied = [];
   const failed = [];
+  const repoAbs = resolve(repoRoot) + '/';
 
   for (const edit of edits) {
     const fullPath = join(repoRoot, edit.path);
+
+    // Path traversal protection
+    if (!resolve(fullPath).startsWith(repoAbs)) {
+      failed.push({ path: edit.path, error: new EditMatchError(edit.path, `Path "${edit.path}" is outside the repository.`) });
+      continue;
+    }
 
     // Handle create_file operations
     if (edit.type === 'create') {

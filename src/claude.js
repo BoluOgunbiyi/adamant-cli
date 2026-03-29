@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
+import { tmpdir } from 'os';
 import { AuthError, RateLimitError, TimeoutError, EmptyResponseError, RefusalError } from './errors.js';
 
 const TOOLS = [
@@ -54,8 +55,18 @@ const TOOLS = [
   },
 ];
 
+import { resolve } from 'path';
+
+function isInsideRepo(repoRoot, filePath) {
+  const resolved = resolve(repoRoot, filePath);
+  return resolved.startsWith(resolve(repoRoot) + '/');
+}
+
 function handleToolCall(toolName, input, repoRoot) {
   if (toolName === 'read_file') {
+    if (!isInsideRepo(repoRoot, input.path)) {
+      return `Error: Path "${input.path}" is outside the repository. Cannot read files outside the project.`;
+    }
     try {
       const fullPath = join(repoRoot, input.path);
       const content = readFileSync(fullPath, 'utf-8');
@@ -67,15 +78,13 @@ function handleToolCall(toolName, input, repoRoot) {
   }
 
   if (toolName === 'search_files') {
+    const tmpPattern = join(tmpdir(), `adamant-search-${Date.now()}.tmp`);
     try {
-      // Use writeFileSync to pass query safely - no shell injection
-      const tmpPattern = join(repoRoot, '.adamant-search-tmp');
       writeFileSync(tmpPattern, input.query);
       const result = execSync(
-        `grep -rn --include='*' -l -F -f .adamant-search-tmp . | head -10`,
+        `grep -rn --exclude-dir=node_modules --exclude-dir=.git -l -F -f "${tmpPattern}" . | head -10`,
         { cwd: repoRoot, encoding: 'utf-8', timeout: 5000 }
       );
-      unlinkSync(tmpPattern);
       if (!result.trim()) return 'No matches found.';
 
       const files = result.trim().split('\n').slice(0, 10);
@@ -83,7 +92,7 @@ function handleToolCall(toolName, input, repoRoot) {
       for (const file of files) {
         try {
           const grepResult = execSync(
-            `grep -n -F -C 3 -f .adamant-search-tmp "${file}"`,
+            `grep -n -F -C 3 -f "${tmpPattern}" "${file}"`,
             { cwd: repoRoot, encoding: 'utf-8', timeout: 5000 }
           );
           output += `\n### ${file}\n${grepResult}\n`;
@@ -92,6 +101,8 @@ function handleToolCall(toolName, input, repoRoot) {
       return output || 'No matches found.';
     } catch {
       return 'No matches found.';
+    } finally {
+      try { unlinkSync(tmpPattern); } catch { /* already gone */ }
     }
   }
 

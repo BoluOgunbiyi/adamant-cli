@@ -28,7 +28,7 @@ program
   .description('Make a wish - describe what you want changed in plain English')
   .option('--preview', 'See the diff before creating the PR')
   .option('--dry-run', 'Show what would change without creating anything')
-  .option('--yes, -y', 'Skip confirmation prompts')
+  .option('-y, --yes', 'Skip confirmation prompts')
   .option('--model <model>', 'Claude model to use')
   .option('--file <path>', 'Focus on a specific file or directory')
   .option('--ready', 'Create PR as ready for review (default: draft)')
