@@ -30,11 +30,17 @@ export async function runUndo() {
     return;
   }
 
-  // 2. Get the last wish
-  const last = history[history.length - 1];
+  // 2. Get the last undoable wish (skip already undone)
+  let last = null;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].status !== 'undone' && history[i].prUrl) {
+      last = history[i];
+      break;
+    }
+  }
 
-  if (!last.prUrl) {
-    console.log('\n  Last wish has no PR (may have been --local or --dry-run). Nothing to undo.\n');
+  if (!last) {
+    console.log('\n  No wishes to undo. All recent wishes are already undone or were local/dry-run.\n');
     return;
   }
 
@@ -94,8 +100,10 @@ export async function runUndo() {
     return;
   }
 
-  // 8. Remove from history
-  history.pop();
+  // 8. Mark as undone in history (keep the record, add status)
+  last.status = 'undone';
+  last.undoneAt = new Date().toISOString();
+  history[history.length - 1] = last;
   writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2), { mode: 0o600 });
 
   console.log('');

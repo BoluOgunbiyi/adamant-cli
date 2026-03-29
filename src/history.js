@@ -26,12 +26,16 @@ export function getHistory() {
 
 export function getStats() {
   const history = getHistory();
-  const repos = new Set(history.map(h => h.repo));
+  const active = history.filter(h => h.status !== 'undone');
+  const undone = history.filter(h => h.status === 'undone');
+  const repos = new Set(active.map(h => h.repo));
   const totalCost = history.reduce((sum, h) => sum + (h.cost || 0), 0);
   return {
     totalWishes: history.length,
+    activeWishes: active.length,
+    undoneWishes: undone.length,
     totalRepos: repos.size,
-    prsCreated: history.filter(h => h.prUrl).length,
+    prsCreated: active.filter(h => h.prUrl).length,
     totalCost,
   };
 }
@@ -46,7 +50,8 @@ export function formatHistory(isTTY) {
   for (const entry of history.slice(-20).reverse()) {
     const date = new Date(entry.timestamp).toLocaleDateString();
     const cost = entry.cost ? ` ($${entry.cost.toFixed(2)})` : '';
-    output += `  ${date}  "${entry.wish}"${cost}\n`;
+    const undone = entry.status === 'undone' ? ' [undone]' : '';
+    output += `  ${date}  "${entry.wish}"${cost}${undone}\n`;
     if (entry.prUrl) output += `           ${entry.prUrl}\n`;
     output += '\n';
   }
@@ -60,10 +65,10 @@ export function formatStats(isTTY) {
   }
 
   const fixes = stats.prsCreated;
+  const undoneNote = stats.undoneWishes > 0 ? `\n  ${stats.undoneWishes} undone.` : '';
   return `
   You've made ${stats.totalWishes} wish${stats.totalWishes === 1 ? '' : 'es'} across ${stats.totalRepos} repo${stats.totalRepos === 1 ? '' : 's'}.
-  ${fixes} PR${fixes === 1 ? '' : 's'} created. You've shipped ${fixes} fix${fixes === 1 ? '' : 'es'}
-  without writing code.
+  ${fixes} PR${fixes === 1 ? '' : 's'} shipped.${undoneNote}
 
   Total cost: $${stats.totalCost.toFixed(2)}
 `;
