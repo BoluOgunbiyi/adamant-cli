@@ -22,29 +22,29 @@ Rules:
 }
 
 export function buildUserPrompt(wish, fileTree, fileContents, context, targetFile) {
-  let prompt = \`## The Wish\n\n"\${wish}"\n\n\`;
+  let prompt = `## The Wish\n\n"${wish}"\n\n`;
 
   if (targetFile) {
-    prompt += \`**Focus on: \\\`\${targetFile}\\\`**\n\n\`;
+    prompt += `**Focus on: \`${targetFile}\`**\n\n`;
   }
 
-  prompt += \`## Repository Structure\n\n\\\`\\\`\\\`\n\${fileTree}\n\\\`\\\`\\\`\n\n\`;
+  prompt += '## Repository Structure\n\n```\n' + fileTree + '\n```\n\n';
 
   if (context && context.fileMap) {
-    prompt += \`## Prior Context\n\n\`;
+    prompt += `## Prior Context\n\n`;
     for (const [feature, files] of Object.entries(context.fileMap)) {
-      prompt += \`- "\${feature}" → \${files.join(', ')}\n\`;
+      prompt += `- "${feature}" → ${files.join(', ')}\n`;
     }
-    prompt += \`\n\`;
+    prompt += `\n`;
   }
 
   if (fileContents.length > 0) {
-    prompt += \`## File Contents\n\n\`;
+    prompt += `## File Contents\n\n`;
     for (const { path, content } of fileContents) {
-      prompt += \`### \${path}\n\\\`\\\`\\\`\n\${content}\n\\\`\\\`\\\`\n\n\`;
+      prompt += '### ' + path + '\n```\n' + content + '\n```\n\n';
     }
   }
 
-  prompt += \`Read the wish. Use tools to explore and make changes. Write the PR description as your final response.\n\`;
+  prompt += `Read the wish. Use tools to explore and make changes. Write the PR description as your final response.\n`;
   return prompt;
 }
