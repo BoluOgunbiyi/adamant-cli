@@ -9,12 +9,6 @@ import { loadConfig } from './config.js';
 const HISTORY_FILE = join(homedir(), '.adamant', 'history.json');
 const isTTY = process.stdout.isTTY;
 
-function parseRemoteUrl(url) {
-  let match = url.match(/github[^/]*[:/](.+?)\/(.+?)(?:\.git)?$/);
-  if (match) return { owner: match[1], repo: match[2] };
-  return null;
-}
-
 export async function runUndo() {
   // 1. Load history
   let history;
@@ -32,9 +26,11 @@ export async function runUndo() {
 
   // 2. Get the last undoable wish (skip already undone)
   let last = null;
+  let lastIndex = -1;
   for (let i = history.length - 1; i >= 0; i--) {
     if (history[i].status !== 'undone' && history[i].prUrl) {
       last = history[i];
+      lastIndex = i;
       break;
     }
   }
@@ -50,8 +46,26 @@ export async function runUndo() {
   console.log(chalk.dim(`  PR: ${last.prUrl}`));
   console.log('');
 
-  // 3. Load config for GitHub token
-  const config = loadConfig();
+  // 3. Confirm before undoing
+  if (isTTY) {
+    const { createInterface } = await import('readline');
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise(resolve => rl.question('  Undo this wish? [Y/n] ', resolve));
+    rl.close();
+    if (answer.trim().toLowerCase() === 'n') {
+      console.log(chalk.dim('  Cancelled.\n'));
+      return;
+    }
+  }
+
+  // 4. Load config for GitHub token
+  let config;
+  try {
+    config = loadConfig();
+  } catch {
+    console.log(chalk.red('  No config found. Run `adamant config --reset` to set up.\n'));
+    return;
+  }
   const octokit = new Octokit({ auth: config.github_token });
 
   // 4. Extract owner/repo/number from PR URL
@@ -68,8 +82,11 @@ export async function runUndo() {
   try {
     const { data: pr } = await octokit.pulls.get({ owner, repo, pull_number: prNumber });
 
-    if (pr.state === 'closed' || pr.merged) {
-      console.log(chalk.dim(`  PR #${prNumber} is already ${pr.merged ? 'merged' : 'closed'}.`));
+    if (pr.merged) {
+      console.log(chalk.yellow(`  PR #${prNumber} is already merged. The code is on ${pr.base.ref}.`));
+      console.log(chalk.yellow('  To fully revert, ask your engineer to run: git revert <merge-commit>'));
+    } else if (pr.state === 'closed') {
+      console.log(chalk.dim(`  PR #${prNumber} is already closed.`));
     } else {
       await octokit.pulls.update({ owner, repo, pull_number: prNumber, state: 'closed' });
       console.log(chalk.green(`  Closed PR #${prNumber}.`));
@@ -101,9 +118,8 @@ export async function runUndo() {
   }
 
   // 8. Mark as undone in history (keep the record, add status)
-  last.status = 'undone';
-  last.undoneAt = new Date().toISOString();
-  history[history.length - 1] = last;
+  history[lastIndex].status = 'undone';
+  history[lastIndex].undoneAt = new Date().toISOString();
   writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2), { mode: 0o600 });
 
   console.log('');
